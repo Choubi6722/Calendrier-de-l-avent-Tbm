@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier de l'Avent - Twirling</title>
+    <style>
+        /* Style général de la page */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: darkred;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        /* Conteneur principal */
+        .calendar-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        /* Grille des cases */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+        }
+
+        .calendar-box {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #9d0707, #9d0707);
+            border: 2px solid #FFD700;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .calendar-box.locked {
+            background: #555;
+            border-color: #777;
+            cursor: not-allowed;
+            color: #999;
+        }
+
+        .calendar-box:hover:not(.locked) {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+        }
+
+        /* Pop-up */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background: #fff;
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .popup-content p {
+            font-size: 1.2em;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <h1>Calendrier de l'Avent <br> du <br> Twirling bâton Maisonsgoutte</h1>
+        <div class="calendar-grid" id="calendar-grid">
+            <!-- Cases générées par JavaScript -->
+        </div>
+    </div>
+
+    <!-- Pop-up -->
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <span class="close-btn" id="close-popup">&times;</span>
+            <p id="popup-text">Contenu de la case</p>
+        </div>
+    </div>
+
+    <script>
+        // Obtenir la date actuelle
+        const today = new Date();
+        const currentDay = today.getDate();
+        const currentMonth = today.getMonth(); // 11 = Décembre
+        const isDecember = currentMonth === 11;
+
+        // Contenu des cases
+        const caseContents = {
+            1: "Bienvenue dans le calendrier de l'Avent du TBM🎄 !",
+            2: "🎄Le saviez-vous : Si les 13 lutins du père noël se mettaient au twirling, ils pourraient faire un groupe artistique 🎁",
+            3: "🎁 Défi : Ajoute un accessoire festif à ton entraînement ou ta tenue aujourd’hui : bonnet, guirlande, ou chaussettes de Noël. 🎄",
+            4: "❄️ Citation : 'La clé du succès : 1% de talent, 99% de travail et une pincée de magie de Noël. 🎀'",
+            5: "Le saviez-vous : il y a plus de 3 millions d'athlètes pratiquant le twirling dans le monde 🌍",
+            6: "🎁 Défi : Trouve un moment pour t’entraîner en extérieur sous des décorations lumineuses (attention au sol glissant !). 🎇",
+            7: "Citation : 'Le père noël a son bonnet 🎅le twirleur a son bâton '",
+            8: "❄️ Le saviez-vous ? Le twirling bâton est inspiré des défilés militaires, mais il a évolué pour devenir un sport artistique et chorégraphique, notamment en France, au Japon et aux États-Unis. ✨",
+            9: "🎄 Citation : 'Le plus grand des talents, c’est la persévérance. – Noël est parfait pour se souvenir de cela. 🎀'",
+            10: "🎄 Défi : Essaie d'ajouter un élément de danse classique ou moderne dans ta routine de twirling aujourd'hui. 🎅",
+            11: "🎁 Citation : 'La magie n'est pas dans le bâton, mais dans la passion de celui qui le fait tourner.'",
+            12: "Défi spécial : Tourne avec un accessoire festif.",
+            13: "❄️ Le saviez-vous ? Le record du monde de la rotation du bâton la plus rapide est de 7 rotations par seconde. 🌀",
+            14: "❄️ Défi : Essaie un échauffement sur une chanson rapide de Noël, comme Jingle Bell Rock 🎶",
+            15: "Citation inspirante : 'La persévérance bat le talent lorsque le talent ne travaille pas assez.'",
+            16: "❄️ Le saviez-vous ? Le ruban de Noël que l’on trouve souvent en décoration peut être une bonne alternative pour travailler la grâce de vos mouvements !",
+            17: "🎄 Citation : 'Un Noël réussi commence par un sourire, même au milieu d'un entraînement.'",
+            18: "❄️ Citation : 'Noël, c’est croire en la lumière même au cœur de l’hiver. Avec le twirling, tu portes cette lumière. 🌟",
+            19: "🎄 Le saviez-vous ? Le sport de twirling est officiellement reconnu depuis les années 1970, mais il reste en constante évolution. 🌍",
+            20: "Défi: Réaliser une chorégraphie 💃 sur une musique de Noël",
+            21: "❄️ Citation : 'La clé du succès : 1% de talent, 99% de travail et une pincée de magie de Noël même dans le twirling. 🎀'",
+            22: "🎄 Le saviez-vous ? Les bâtons de twirling modernes sont faits d’aluminium pour leur légèreté et leur durabilité, parfaits pour les figures aériennes. ✈️",
+            23: "Noël c'est DEMAIN !",
+            24: "'Que la magie de Noël illumine chaque tour de bâton et que l'année prochaine soit remplie de réussites et de rêves accomplis. Joyeux Noël ! 🎄🎅'"
+        };
+
+        // Conteneur des cases
+        const calendarGrid = document.getElementById('calendar-grid');
+
+        // Générer les cases du calendrier
+        function generateCalendar() {
+            for (let i = 1; i <= 24; i++) {
+                const box = document.createElement('div');
+                box.classList.add('calendar-box');
+                box.textContent = i;
+                box.dataset.day = i;
+
+                // Désactiver la case si la date n'est pas encore arrivée
+                if (!isDecember || i > currentDay) {
+                    box.classList.add('locked');
+                } else {
+                    box.addEventListener('click', () => {
+                        openPopup(caseContents[i] || "Contenu non défini pour ce jour.");
+                    });
+                }
+
+                calendarGrid.appendChild(box);
+            }
+        }
+
+        // Fonction pour afficher le pop-up
+        function openPopup(content) {
+            const popup = document.getElementById('popup');
+            const popupText = document.getElementById('popup-text');
+            popupText.innerHTML = content; // Utilisez innerHTML pour inclure des liens ou HTML
+            popup.style.display = 'flex';
+        }
+
+        // Fonction pour fermer le pop-up
+        document.getElementById('close-popup').addEventListener('click', () => {
+            document.getElementById('popup').style.display = 'none';
+        });
+
+        // Fermer le pop-up si on clique à l'extérieur
+        window.addEventListener('click', (event) => {
+            const popup = document.getElementById('popup');
+            if (event.target === popup) {
+                popup.style.display = 'none';
+            }
+        });
+
+        // Générer le calendrier
+        generateCalendar();
+    </script>
+</body>
+</html>
